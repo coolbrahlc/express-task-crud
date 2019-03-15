@@ -1,4 +1,10 @@
+const { accessibleRecordsPlugin } = require('@casl/mongoose');
 const mongoose = require('mongoose');
+
+mongoose.plugin(accessibleRecordsPlugin);
+
+
+
 const Schema = new mongoose.Schema({
    fullName: {
        type: String,
@@ -24,8 +30,15 @@ const Schema = new mongoose.Schema({
        type: String,
         required: true,
         select: false
-    }
+    },
+
+    role: {
+        type: Number,
+        required: true,
+        default: 0
+    },
 });
+Schema.plugin(accessibleRecordsPlugin);
 
 
 const User = mongoose.model('User', Schema);

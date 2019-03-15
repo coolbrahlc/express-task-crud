@@ -1,15 +1,18 @@
-const {users} = require('./test');
-const express = require('express');
 const User = require('./models/user_model');
-const { check, validationResult } = require('express-validator/check');
+const UserNotFoundError = require('./errors/userNotFoundError');
+
+const { AbilityBuilder } = require('@casl/ability');
+
+const defineAbility = require('./utils/defineAbility');
+
+
+
+// const ability_moder = AbilityBuilder.define((can, cannot) => {
+//     can(['read','update'],'User');
+// });
 
 module.exports.getAllUsers = (req, res, next) => {
-    // const queryObj = req.query;
-    // console.log(queryObj);
-    // res.json(users);
-    console.log('asd123');
-
-    User.find({})
+    User.find({}).accessibleBy(ability_moder)
         .then(users => {
             res.send(users);
         })
@@ -17,73 +20,84 @@ module.exports.getAllUsers = (req, res, next) => {
             console.log(err);
             next(err);
         });
-
 };
 
-
 module.exports.getUser =  (req, res, next) => {
-    //const id =  parseInt(req.params.id);
-    //const user = users.find(u => u.id === id);
-    // if(!user) {
-    //     //res.send('User not found');
-    //     next(new Error("USer not found in db"));
-    // } else {
-    //     res.json(user);
-    //     }
 
-    User.findById(req.params.id)
-    .then(user => {
+    let ability = defineAbility(req);
+
+    console.log(ability);
+    User.findById(req.params.id).accessibleBy(ability)
+        .then(user => {
         if (!user) {
-            throw new Error('User not found');
+            throw new UserNotFoundError();
         }
         res.send(user);
     })
     .catch(err => {
-        //console.log(err);
         next(err);
     });
-
 };
 
 
 module.exports.addUser = (req, res, next) => {
-    // const getUSer = req.body;
-    //
-    // const oldUser = users.find( u => u.login === getUSer.login);
-    // if (oldUser) {
-    //     //res.send('USer already taken');
-    //     //next(new Error("USer already taken'"));
-    //     next({code:400, message:'USer already exists'});
-    //     } else {users.push(getUSer);
-    //             res.send('OK');
-    //             }
 
-
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(422).json({ errors: errors.array() });
-    }
+    let ability = defineAbility(req.headers.role);
+    ability.throwUnlessCan('create', User);
 
     const user = new User(req.body);
+    ability_moder.cannot('write', user);
 
     user.save()
         .then(savedUser => {
             res.send(savedUser);
         })
         .catch(err => {
-            //console.log(err);
             next(err);
         })
 };
 
 module.exports.deleteUser = (req, res, next) => {
 
+    let ability_del = defineAbility(req);
+    ability_del.throwUnlessCan('delete', User);
+
+
+    console.log("deleted");
+
     User.deleteOne({_id: req.params.id})
         .then(deletedUSer => {
+            if (deletedUSer.deletedCount===0){
+                throw new UserNotFoundError();
+            }
             res.send(deletedUSer);
         })
         .catch(err => {
-            console.log(err);
+            //console.log(err);
+            next(err);
+        });
+};
+
+module.exports.updateUser = (req, res, next) => {
+
+    let ability = defineAbility(req);
+
+    //ability.throwUnlessCan('update', User);
+    console.log("asd1");
+    const id = req.params.id;
+    const body = req.body;
+    //const test = {...body, ...{test: 1}};
+
+    User.updateOne({_id: id}, {$set: body})
+        .then(user => {
+            ability.throwUnlessCan('delete', user);
+
+            if (!user) {
+                throw new UserNotFoundError();
+            }
+            res.send(user);
+        })
+        .catch(err=>{
             next(err);
         });
 };

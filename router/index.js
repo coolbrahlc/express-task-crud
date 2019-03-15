@@ -1,25 +1,16 @@
 const express = require('express');
 const router = express.Router();
-
 const controller = require('../userController');
 const validationMiddleware = require('../utils/validationMiddleware');
-const { check, validationResult } = require('express-validator/check');
+const getUsersValidation = require('../utils/getUsersValidation');
+const expressValidator = require('../utils/expressValidator');
+const checkRules = require('../utils/postUserCheckParams');
 
 
 router.get('/user',  controller.getAllUsers);
-
-
-
-router.get('/user/:id',  controller.getUser);
-router.post('/user',
-    [
-        check('email').isEmail(),
-        check('age').isInt({min:10, max:100}),
-        check('fullName').isLength({ min: 5 })
-    ],
-    controller.addUser);
-
-router.delete('/user/:id',  controller.deleteUser);
-
+router.get('/user/:id', getUsersValidation, controller.getUser);
+router.delete('/user/:id', getUsersValidation, controller.deleteUser);
+router.put('/user/:id', checkRules.checkUpdateUsers, expressValidator, controller.updateUser);
+router.post('/user', checkRules.checkUsers, expressValidator, controller.addUser);
 
 module.exports.router = router;

@@ -10,7 +10,7 @@ module.exports =  (err, req, res, next) => {
     // }
 
     if (!err.code) {
-        res.status(500).json(err)
+        res.status(500).send(err)
     } else {
         res.status(500).json(err);
     }

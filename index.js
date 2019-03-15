@@ -20,9 +20,10 @@ app.use(express.json());
 //         console.log('Middleware 3');
 //         next();
 //     });
+
 app.use(router);
 app.use(error_handler);
 
-app.listen(3021,  () => {
+app.listen(3000,  () => {
     console.log('Example app listening on port 3000!');
 });

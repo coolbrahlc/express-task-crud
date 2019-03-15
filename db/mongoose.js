@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 require('../models/user_model');
 
 
-mongoose.connect('mongodb://localhost/my_database',  { useNewUrlParser: true }, (err) =>{
+mongoose.connect('mongodb://localhost/my_new_database',  { useNewUrlParser: true }, (err) =>{
     if (err) {
         process.exit(1);
     } else {
