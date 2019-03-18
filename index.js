@@ -13,10 +13,6 @@ app.use(express.json());
 //         //next(new Error('TEst error'));
 //     },
 //     (req, res, next) => {
-//         console.log('Middleware 2');
-//         next();
-//     },
-//     (req, res, next) => {
 //         console.log('Middleware 3');
 //         next();
 //     });

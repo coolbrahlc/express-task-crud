@@ -1,8 +1,6 @@
 
 module.exports =  (err, req, res, next) => {
 
-    //console.log(err);
-
     // if (!err.code) {
     //     res.status(500).send(err.message)
     // } else {

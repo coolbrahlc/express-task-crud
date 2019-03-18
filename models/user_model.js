@@ -33,9 +33,7 @@ const Schema = new mongoose.Schema({
     },
 
     role: {
-        type: Number,
-        required: true,
-        default: 0
+        type: String
     },
 });
 Schema.plugin(accessibleRecordsPlugin);

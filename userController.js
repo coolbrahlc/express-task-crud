@@ -1,18 +1,10 @@
 const User = require('./models/user_model');
 const UserNotFoundError = require('./errors/userNotFoundError');
 
-const { AbilityBuilder } = require('@casl/ability');
-
-const defineAbility = require('./utils/defineAbility');
-
-
-
-// const ability_moder = AbilityBuilder.define((can, cannot) => {
-//     can(['read','update'],'User');
-// });
 
 module.exports.getAllUsers = (req, res, next) => {
-    User.find({}).accessibleBy(ability_moder)
+
+    User.find({})
         .then(users => {
             res.send(users);
         })
@@ -24,10 +16,7 @@ module.exports.getAllUsers = (req, res, next) => {
 
 module.exports.getUser =  (req, res, next) => {
 
-    let ability = defineAbility(req);
-
-    console.log(ability);
-    User.findById(req.params.id).accessibleBy(ability)
+    User.findById(req.params.id)
         .then(user => {
         if (!user) {
             throw new UserNotFoundError();
@@ -39,15 +28,9 @@ module.exports.getUser =  (req, res, next) => {
     });
 };
 
-
 module.exports.addUser = (req, res, next) => {
 
-    let ability = defineAbility(req.headers.role);
-    ability.throwUnlessCan('create', User);
-
     const user = new User(req.body);
-    ability_moder.cannot('write', user);
-
     user.save()
         .then(savedUser => {
             res.send(savedUser);
@@ -59,16 +42,10 @@ module.exports.addUser = (req, res, next) => {
 
 module.exports.deleteUser = (req, res, next) => {
 
-    let ability_del = defineAbility(req);
-    ability_del.throwUnlessCan('delete', User);
-
-
-    console.log("deleted");
-
     User.deleteOne({_id: req.params.id})
         .then(deletedUSer => {
             if (deletedUSer.deletedCount===0){
-                throw new UserNotFoundError();
+                next(new UserNotFoundError());
             }
             res.send(deletedUSer);
         })
@@ -80,9 +57,6 @@ module.exports.deleteUser = (req, res, next) => {
 
 module.exports.updateUser = (req, res, next) => {
 
-    let ability = defineAbility(req);
-
-    //ability.throwUnlessCan('update', User);
     console.log("asd1");
     const id = req.params.id;
     const body = req.body;
@@ -90,7 +64,6 @@ module.exports.updateUser = (req, res, next) => {
 
     User.updateOne({_id: id}, {$set: body})
         .then(user => {
-            ability.throwUnlessCan('delete', user);
 
             if (!user) {
                 throw new UserNotFoundError();
@@ -98,6 +71,37 @@ module.exports.updateUser = (req, res, next) => {
             res.send(user);
         })
         .catch(err=>{
+            next(err);
+        });
+};
+
+
+module.exports.getUserRoleById =  (req, res, next) => {
+
+    User.findById(req.params.id)
+        .then(user => {
+            if (!user) {
+                throw new UserNotFoundError();
+            }
+            req.role = user.role;
+            next();
+        })
+        .catch(err => {
+            next(err);
+        });
+};
+
+module.exports.getMyRole = (req, res, next) => {
+
+    User.findById(req.headers.id)
+        .then(user => {
+            if (!user) {
+                throw new UserNotFoundError();
+            }
+            req.myRole = user.role;
+            next();
+        })
+        .catch(err => {
             next(err);
         });
 };
